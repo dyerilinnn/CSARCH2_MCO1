@@ -1,0 +1,558 @@
+/* =========================================================================
+   IEEE 754 Machine — design tokens
+   Pure black-on-white, grid-based, monospace accents for anything that is
+   literally bits (binary/hex output). The signature interaction is a
+   bit-flip: black <-> white inversion on hover, echoing 0/1.
+   ========================================================================= */
+
+:root {
+  --color-bg: #ffffff;
+  --color-surface: #f5f5f5;
+  --color-text: #111111;
+  --color-muted: #6b6b6b;
+  --color-border: #111111;
+  --color-border-soft: #d9d9d9;
+
+  --font-body: "Roboto", -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Roboto Mono", "SFMono-Regular", Consolas, monospace;
+
+  --max-width: 880px;
+  --gap: 24px;
+  --radius: 2px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+a {
+  color: inherit;
+}
+
+/* -------------------------------------------------------------------------
+   Header / footer
+   ------------------------------------------------------------------------- */
+
+.site-header {
+  border-bottom: 2px solid var(--color-border);
+  padding: 20px 0;
+}
+
+.header-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.brand {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  color: var(--color-text);
+}
+
+.brand-mark {
+  color: var(--color-muted);
+  margin-right: 2px;
+}
+
+.brand-sub {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--color-muted);
+}
+
+.back-link {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  text-decoration: none;
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 1px;
+  transition: opacity 0.15s ease;
+}
+
+.back-link:hover {
+  opacity: 0.6;
+}
+
+.site-footer {
+  border-top: 1px solid var(--color-border-soft);
+  margin-top: auto;
+  padding: 18px 0;
+}
+
+.site-footer .wrap {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  letter-spacing: 0.04em;
+}
+
+/* -------------------------------------------------------------------------
+   Main content
+   ------------------------------------------------------------------------- */
+
+.main-content {
+  flex: 1;
+  padding-top: 56px;
+  padding-bottom: 64px;
+}
+
+.intro h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 8px;
+  letter-spacing: -0.01em;
+}
+
+.intro p {
+  margin: 0 0 40px;
+  color: var(--color-muted);
+}
+
+.module-address--page {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  border: 1px solid var(--color-border-soft);
+  padding: 2px 8px;
+  border-radius: var(--radius);
+  margin-bottom: 14px;
+}
+
+/* -------------------------------------------------------------------------
+   Module grid (index page)
+   ------------------------------------------------------------------------- */
+
+.module-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--color-border);
+  border: 1px solid var(--color-border);
+}
+
+.module-card {
+  background: var(--color-bg);
+  padding: 28px 24px 24px;
+  text-decoration: none;
+  color: var(--color-text);
+  display: flex;
+  flex-direction: column;
+  min-height: 220px;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.module-card[data-status="active"]:hover,
+.module-card[data-status="active"]:focus-visible {
+  background: var(--color-text);
+  color: var(--color-bg);
+  outline: none;
+}
+
+.module-card[data-status="active"]:hover .module-cta,
+.module-card[data-status="active"]:focus-visible .module-cta {
+  color: var(--color-bg);
+}
+
+.module-card[data-status="disabled"] {
+  color: var(--color-muted);
+  cursor: default;
+}
+
+.module-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.module-address {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.module-status {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  border: 1px solid currentColor;
+  padding: 2px 6px;
+  border-radius: var(--radius);
+}
+
+.module-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+
+.module-desc {
+  font-size: 0.92rem;
+  margin: 0;
+  flex: 1;
+  opacity: 0.85;
+}
+
+.module-cta {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  margin-top: 18px;
+  color: var(--color-text);
+}
+
+.module-card[data-status="disabled"] .module-cta {
+  color: var(--color-muted);
+}
+
+/* -------------------------------------------------------------------------
+   Panels (form + results) — convert page
+   ------------------------------------------------------------------------- */
+
+.panel {
+  border: 1px solid var(--color-border);
+  padding: 28px;
+  border-radius: var(--radius);
+}
+
+.form-panel {
+  background: var(--color-bg);
+}
+
+.field-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin-bottom: 10px;
+}
+
+.field-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+#decimal-input {
+  flex: 1 1 260px;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+#decimal-input:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+.btn-primary {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 12px 24px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-text);
+  color: var(--color-bg);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-primary:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.btn-primary:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+.field-hint {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  margin: 12px 0 0;
+}
+
+/* -------------------------------------------------------------------------
+   Rounding page — form groups, radio row, four-mode results grid
+   ------------------------------------------------------------------------- */
+
+.field-group {
+  border: none;
+  padding: 0;
+  margin: 0 0 22px;
+}
+
+.field-group:last-of-type {
+  margin-bottom: 22px;
+}
+
+.field-group #round-value-input,
+.field-group #round-target-input {
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.field-group #round-target-input {
+  max-width: 160px;
+}
+
+.field-group input:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+.radio-row {
+  display: flex;
+  gap: 10px;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 10px 18px;
+  cursor: pointer;
+  font-size: 0.92rem;
+  user-select: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.radio-option:has(input:checked) {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.radio-option input {
+  accent-color: var(--color-text);
+}
+
+.radio-option:has(input:checked) input {
+  accent-color: var(--color-bg);
+}
+
+.result-echo {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  margin-bottom: 20px;
+  word-break: break-all;
+}
+
+.rounding-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--color-border);
+  border: 1px solid var(--color-border);
+}
+
+.rounding-card {
+  background: var(--color-bg);
+  padding: 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: center;
+}
+
+.rounding-card--highlight {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.rounding-mode-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.rounding-mode-sub {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.02em;
+  opacity: 0.6;
+}
+
+.rounding-mode-value {
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 500;
+  margin-top: 8px;
+  word-break: break-all;
+}
+
+.error-message {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-border);
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  margin-top: var(--gap);
+}
+
+.result-panel {
+  margin-top: var(--gap);
+  background: var(--color-bg);
+}
+
+/* Bit-field visualization */
+
+.bitfield {
+  display: grid;
+  grid-template-columns: 1fr 3fr 8fr;
+  gap: 1px;
+  background: var(--color-border);
+  border: 1px solid var(--color-border);
+  margin-bottom: 24px;
+}
+
+.bit-group {
+  background: var(--color-bg);
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+}
+
+.bit-group--sign {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.bit-group-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.bit-group-value {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 700;
+  word-break: break-all;
+}
+
+.bit-group-caption {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  opacity: 0.55;
+}
+
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 10px 0;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.result-row:first-of-type {
+  border-top: none;
+}
+
+.result-label {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.result-value--mono {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 500;
+  word-break: break-all;
+  text-align: right;
+}
+
+/* -------------------------------------------------------------------------
+   Responsive
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 700px) {
+  .module-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bitfield {
+    grid-template-columns: 1fr;
+  }
+
+  .rounding-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .radio-row {
+    flex-direction: column;
+  }
+
+  .result-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .result-value--mono {
+    text-align: left;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}

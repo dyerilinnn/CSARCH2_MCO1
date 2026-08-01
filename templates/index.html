@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IEEE 754 Machine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="wrap header-row">
+      <span class="brand">
+        <span class="brand-mark"></span>IEEE&nbsp;754&nbsp;COMPUTING&nbsp;MACHINE
+      </span>
+      <span class="brand-sub">single&#8209;precision&nbsp;·&nbsp;32&#8209;bit</span>
+    </div>
+  </header>
+
+  <main class="wrap main-content">
+
+    <section class="intro">
+      <h1>Choose an operation.</h1>
+      <p>Three modules. One 32-bit floating-point machine.</p>
+    </section>
+
+    <section class="module-grid" aria-label="Available operations">
+
+      <a href="{{ url_for('convert_page') }}" class="module-card" data-status="active">
+        <div class="module-top">
+          <span class="module-address">0x00</span>
+          <span class="module-status">READY</span>
+        </div>
+        <h2 class="module-title">Convert</h2>
+        <p class="module-desc">Turn a decimal number into IEEE 754 single-precision binary and hex.</p>
+        <span class="module-cta">Run module &rarr;</span>
+      </a>
+
+      <a href="{{ url_for('rounding_page') }}" class="module-card" data-status="active">
+        <div class="module-top">
+          <span class="module-address">0x01</span>
+          <span class="module-status">READY</span>
+        </div>
+        <h2 class="module-title">Rounding</h2>
+        <p class="module-desc">Demonstrate IEEE 754 rounding methods on decimal or binary values.</p>
+        <span class="module-cta">Run module &rarr;</span>
+      </a>
+
+      <div class="module-card" data-status="disabled" aria-disabled="true">
+        <div class="module-top">
+          <span class="module-address">0x02</span>
+          <span class="module-status">BUILDING</span>
+        </div>
+        <h2 class="module-title">Arithmetic</h2>
+        <p class="module-desc">Add or multiply operands in decimal or IEEE hex, with rounding applied.</p>
+        <span class="module-cta">Coming soon</span>
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>sign · exponent · mantissa</span>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

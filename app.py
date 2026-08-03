@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify
 
 from converter import decimal_to_ieee754
 from rounding import round_decimal, round_binary
+from arithmetic import compute
 
 app = Flask(__name__)
 
@@ -23,15 +24,10 @@ def rounding_page():
     """Rounding methods demonstration page."""
     return render_template("rounding.html")
 
-
-# --- Placeholder route -------------------------------------------------------
-# arithmetic.py / arithmetic.html are not built yet. This route exists so the
-# menu structure in index.html matches app.py's URL map from day one; wire it
-# up to a real template + logic module once those files exist.
-#
-# @app.route("/arithmetic")
-# def arithmetic_page():
-#     return render_template("arithmetic.html")
+@app.route("/arithmetic")
+def arithmetic_page():
+    """Add/multiply two IEEE 754 single-precision operands, step by step."""
+    return render_template("arithmetic.html")
 
 
 @app.route("/api/convert", methods=["POST"])
@@ -121,6 +117,53 @@ def api_round():
             "input": raw_value,
             "target": target,
             **results,
+        }
+    )
+
+@app.route("/api/arithmetic", methods=["POST"])
+def api_arithmetic():
+    payload = request.get_json(silent=True) or {}
+    operation = payload.get("operation", "add")
+    op1_value = payload.get("op1_value", "")
+    op1_format = payload.get("op1_format", "decimal")
+    op2_value = payload.get("op2_value", "")
+    op2_format = payload.get("op2_format", "decimal")
+
+    if not str(op1_value).strip() or not str(op2_value).strip():
+        return jsonify({"error": "Enter both operands first."}), 400
+
+    try:
+        outcome = compute(op1_value, op1_format, op2_value, op2_format, operation)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    result = outcome["result"]
+    sign_bit, exponent_bits, mantissa_bits = result["binary"].split(" ")
+
+    return jsonify(
+        {
+            "operation": operation,
+            "operand_a": {
+                "input": outcome["operand_a"]["raw"],
+                "binary": outcome["operand_a"]["binary"],
+                "hex": outcome["operand_a"]["hex"],
+                "decimal": outcome["operand_a"]["decimal_value"],
+            },
+            "operand_b": {
+                "input": outcome["operand_b"]["raw"],
+                "binary": outcome["operand_b"]["binary"],
+                "hex": outcome["operand_b"]["hex"],
+                "decimal": outcome["operand_b"]["decimal_value"],
+            },
+            "result": {
+                "binary": result["binary"],
+                "hex": result["hex"],
+                "sign": sign_bit,
+                "exponent": exponent_bits,
+                "mantissa": mantissa_bits,
+                "decimal": result["decimal_value"],
+            },
+            "steps": outcome["steps"],
         }
     )
 

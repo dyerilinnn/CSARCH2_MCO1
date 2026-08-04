@@ -14,7 +14,7 @@
   <header class="site-header">
     <div class="wrap header-row">
       <a href="{{ url_for('index') }}" class="brand">
-        <span class="brand-mark"></span>IEEE&nbsp;754&nbsp;COMPUTING&nbsp;MACHINE
+        IEEE&nbsp;754&nbsp;COMPUTING&nbsp;MACHINE
       </a>
       <a href="{{ url_for('index') }}" class="back-link">&larr; Menu</a>
     </div>
@@ -25,67 +25,69 @@
     <section class="intro">
       <span class="module-address module-address--page">0x02</span>
       <h1>Arithmetic</h1>
-      <p>Add or multiply two operands in decimal or IEEE hex, with rounding applied.</p>
+      <p>Add or multiply two operands, bit by bit.</p>
     </section>
 
     <form id="arithmetic-form" class="panel form-panel" autocomplete="off">
+
+      <div class="operand-grid">
+
+        <fieldset class="field-group operand-fieldset">
+          <legend class="field-label">Operand A</legend>
+          <div class="radio-row radio-row--compact" role="radiogroup" aria-label="Operand A format">
+            <label class="radio-option">
+              <input type="radio" name="format_a" value="decimal" checked>
+              <span>Decimal</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="format_a" value="hex">
+              <span>Hex</span>
+            </label>
+          </div>
+          <input
+            type="text"
+            id="value-a-input"
+            name="value_a"
+            placeholder="e.g. 3.14159"
+            required
+          >
+        </fieldset>
+
+        <fieldset class="field-group operand-fieldset">
+          <legend class="field-label">Operand B</legend>
+          <div class="radio-row radio-row--compact" role="radiogroup" aria-label="Operand B format">
+            <label class="radio-option">
+              <input type="radio" name="format_b" value="decimal" checked>
+              <span>Decimal</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="format_b" value="hex">
+              <span>Hex</span>
+            </label>
+          </div>
+          <input
+            type="text"
+            id="value-b-input"
+            name="value_b"
+            placeholder="e.g. 3.14159"
+            required
+          >
+        </fieldset>
+
+      </div>
 
       <fieldset class="field-group">
         <legend class="field-label">Operation</legend>
         <div class="radio-row" role="radiogroup" aria-label="Operation">
           <label class="radio-option">
-            <input type="radio" name="operation" value="add" checked>
-            <span>Add (A + B)</span>
+            <input type="radio" name="operation" value="addition" checked>
+            <span>Addition (A + B)</span>
           </label>
           <label class="radio-option">
-            <input type="radio" name="operation" value="multiply">
-            <span>Multiply (A &times; B)</span>
+            <input type="radio" name="operation" value="multiplication">
+            <span>Multiplication (A &times; B)</span>
           </label>
         </div>
-      </fieldset>
-
-      <fieldset class="field-group">
-        <legend class="field-label">Operand A</legend>
-        <div class="radio-row" role="radiogroup" aria-label="Operand A format">
-          <label class="radio-option">
-            <input type="radio" name="op1_format" value="decimal" checked>
-            <span>Decimal</span>
-          </label>
-          <label class="radio-option">
-            <input type="radio" name="op1_format" value="hex">
-            <span>IEEE hex</span>
-          </label>
-        </div>
-        <input
-          type="text"
-          id="op1-value-input"
-          name="op1_value"
-          placeholder="e.g. 3.14159, -2.5"
-          inputmode="decimal"
-          required
-        >
-      </fieldset>
-
-      <fieldset class="field-group">
-        <legend class="field-label">Operand B</legend>
-        <div class="radio-row" role="radiogroup" aria-label="Operand B format">
-          <label class="radio-option">
-            <input type="radio" name="op2_format" value="decimal" checked>
-            <span>Decimal</span>
-          </label>
-          <label class="radio-option">
-            <input type="radio" name="op2_format" value="hex">
-            <span>IEEE hex</span>
-          </label>
-        </div>
-        <input
-          type="text"
-          id="op2-value-input"
-          name="op2_value"
-          placeholder="e.g. 3.14159, -2.5"
-          inputmode="decimal"
-          required
-        >
       </fieldset>
 
       <button type="submit" class="btn-primary">Compute</button>
@@ -122,31 +124,17 @@
         <span class="result-label">Binary</span>
         <span id="out-binary" class="result-value result-value--mono"></span>
       </div>
-
       <div class="result-row">
         <span class="result-label">Hex</span>
         <span id="out-hex" class="result-value result-value--mono"></span>
       </div>
-
       <div class="result-row">
         <span class="result-label">Decimal</span>
         <span id="out-decimal" class="result-value result-value--mono"></span>
       </div>
 
-      <div class="rounding-grid" id="steps-grid" aria-label="Computation steps">
-        <div class="rounding-card">
-          <span class="rounding-mode-label">Operand A</span>
-          <span id="out-step-a" class="rounding-mode-sub"></span>
-        </div>
-        <div class="rounding-card">
-          <span class="rounding-mode-label">Operand B</span>
-          <span id="out-step-b" class="rounding-mode-sub"></span>
-        </div>
-        <div class="rounding-card rounding-card--highlight">
-          <span class="rounding-mode-label">Result</span>
-          <span id="out-step-result" class="rounding-mode-sub"></span>
-        </div>
-      </div>
+      <h2 class="steps-heading">Step-by-step</h2>
+      <ol id="steps-list" class="steps-list"></ol>
 
     </section>
 

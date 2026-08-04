@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify
 
 from converter import decimal_to_ieee754
 from rounding import round_decimal, round_binary
-from arithmetic import compute
+from arithmetic import compute as compute_arithmetic
 
 app = Flask(__name__)
 
@@ -24,9 +24,10 @@ def rounding_page():
     """Rounding methods demonstration page."""
     return render_template("rounding.html")
 
+
 @app.route("/arithmetic")
 def arithmetic_page():
-    """Add/multiply two IEEE 754 single-precision operands, step by step."""
+    """Arithmetic (addition / multiplication) demonstration page."""
     return render_template("arithmetic.html")
 
 
@@ -120,52 +121,38 @@ def api_round():
         }
     )
 
+
 @app.route("/api/arithmetic", methods=["POST"])
 def api_arithmetic():
-    payload = request.get_json(silent=True) or {}
-    operation = payload.get("operation", "add")
-    op1_value = payload.get("op1_value", "")
-    op1_format = payload.get("op1_format", "decimal")
-    op2_value = payload.get("op2_value", "")
-    op2_format = payload.get("op2_format", "decimal")
+    """
+    JSON API used by script.js on arithmetic.html.
 
-    if not str(op1_value).strip() or not str(op2_value).strip():
-        return jsonify({"error": "Enter both operands first."}), 400
+    Expects: {
+        "value_a": "...", "format_a": "decimal" | "hex",
+        "value_b": "...", "format_b": "decimal" | "hex",
+        "operation": "addition" | "multiplication"
+    }
+    Returns: {
+        "operation": "...",
+        "operand_a": {sign, exponent_bits, mantissa_bits, binary, hex, decimal, category},
+        "operand_b": {...same shape...},
+        "steps": [{"title": "...", "detail": "..."}, ...],
+        "result": {...same shape as operand_a/b...}
+    }
+    """
+    payload = request.get_json(silent=True) or {}
+    value_a = payload.get("value_a", "")
+    format_a = payload.get("format_a", "decimal")
+    value_b = payload.get("value_b", "")
+    format_b = payload.get("format_b", "decimal")
+    operation = payload.get("operation", "addition")
 
     try:
-        outcome = compute(op1_value, op1_format, op2_value, op2_format, operation)
+        result = compute_arithmetic(value_a, format_a, value_b, format_b, operation)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
-    result = outcome["result"]
-    sign_bit, exponent_bits, mantissa_bits = result["binary"].split(" ")
-
-    return jsonify(
-        {
-            "operation": operation,
-            "operand_a": {
-                "input": outcome["operand_a"]["raw"],
-                "binary": outcome["operand_a"]["binary"],
-                "hex": outcome["operand_a"]["hex"],
-                "decimal": outcome["operand_a"]["decimal_value"],
-            },
-            "operand_b": {
-                "input": outcome["operand_b"]["raw"],
-                "binary": outcome["operand_b"]["binary"],
-                "hex": outcome["operand_b"]["hex"],
-                "decimal": outcome["operand_b"]["decimal_value"],
-            },
-            "result": {
-                "binary": result["binary"],
-                "hex": result["hex"],
-                "sign": sign_bit,
-                "exponent": exponent_bits,
-                "mantissa": mantissa_bits,
-                "decimal": result["decimal_value"],
-            },
-            "steps": outcome["steps"],
-        }
-    )
+    return jsonify(result)
 
 
 if __name__ == "__main__":

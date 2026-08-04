@@ -1,11 +1,6 @@
 /**
  * script.js — IEEE 754 Machine controller
  *
- * Currently wires up the Convert page (#convert-form). Rounding and
- * Arithmetic pages will register their own handlers here once
- * rounding.html / arithmetic.html exist — follow the same pattern:
- * grab the form by id, prevent default, fetch its /api/... endpoint,
- * render results, handle errors.
  */
 
 (function () {
@@ -117,17 +112,21 @@
     const COPY = {
       decimal: {
         valueLabel: "Decimal number",
-        valuePlaceholder: "e.g. 3.14159, -2.5, 2.675",
-        targetLabel: "Digits after the decimal point",
-        targetUnit: "digit(s)",
+        valuePlaceholder: "e.g. 3.14159, -2.5, 10.1234",
+        targetLabel: "Significant digits",
+        targetHint: "Counted from the first nonzero digit — e.g. 10.1234 to 3 significant digits is 10.1.",
+        targetUnit: "significant digit(s)",
       },
       binary: {
         valueLabel: "Binary number",
         valuePlaceholder: "e.g. 1.1011, -0.101, 1010",
-        targetLabel: "Bits after the binary point",
-        targetUnit: "bit(s)",
+        targetLabel: "Significant bits",
+        targetHint: "Counted from the leading 1 — e.g. 1.1011 to 3 significant bits is 1.10.",
+        targetUnit: "significant bit(s)",
       },
     };
+
+    const targetHint = document.getElementById("target-hint");
 
     baseRadios.forEach(function (radio) {
       radio.addEventListener("change", applyBaseCopy);
@@ -141,6 +140,7 @@
       valueInput.placeholder = copy.valuePlaceholder;
       valueInput.inputMode = base === "binary" ? "numeric" : "decimal";
       targetLabel.textContent = copy.targetLabel;
+      if (targetHint) targetHint.textContent = copy.targetHint;
     }
 
     function getSelectedBase() {
@@ -160,8 +160,8 @@
         showError("Enter a number first.");
         return;
       }
-      if (target === "" || Number(target) < 0 || !Number.isInteger(Number(target))) {
-        showError("Target digits/bits must be a whole number of 0 or more.");
+      if (target === "" || Number(target) < 1 || !Number.isInteger(Number(target))) {
+        showError("Target significant digits/bits must be a whole number of 1 or more.");
         return;
       }
 
@@ -220,130 +220,135 @@
   }
 
   function initArithmeticForm() {
-  const form = document.getElementById("arithmetic-form");
-  if (!form) return; // not on the arithmetic page
+    const form = document.getElementById("arithmetic-form");
+    if (!form) return; // not on the arithmetic page
 
-  const op1Input = document.getElementById("op1-value-input");
-  const op2Input = document.getElementById("op2-value-input");
+    const valueAInput = document.getElementById("value-a-input");
+    const valueBInput = document.getElementById("value-b-input");
 
-  const errorBox = document.getElementById("error-message");
-  const resultPanel = document.getElementById("result-panel");
+    const errorBox = document.getElementById("error-message");
+    const resultPanel = document.getElementById("result-panel");
+    const outEcho = document.getElementById("out-echo");
+    const outSign = document.getElementById("out-sign");
+    const outExponent = document.getElementById("out-exponent");
+    const outMantissa = document.getElementById("out-mantissa");
+    const outBinary = document.getElementById("out-binary");
+    const outHex = document.getElementById("out-hex");
+    const outDecimal = document.getElementById("out-decimal");
+    const stepsList = document.getElementById("steps-list");
 
-  const outEcho = document.getElementById("out-echo");
-  const outSign = document.getElementById("out-sign");
-  const outExponent = document.getElementById("out-exponent");
-  const outMantissa = document.getElementById("out-mantissa");
-  const outBinary = document.getElementById("out-binary");
-  const outHex = document.getElementById("out-hex");
-  const outDecimal = document.getElementById("out-decimal");
-  const outStepA = document.getElementById("out-step-a");
-  const outStepB = document.getElementById("out-step-b");
-  const outStepResult = document.getElementById("out-step-result");
+    const PLACEHOLDERS = {
+      decimal: "e.g. 3.14159",
+      hex: "e.g. 0x40490FDB",
+    };
 
-  const FORMAT_PLACEHOLDER = {
-    decimal: "e.g. 3.14159, -2.5",
-    hex: "e.g. 40490FDB",
-  };
-
-  form.querySelectorAll('input[name="op1_format"]').forEach(function (radio) {
-    radio.addEventListener("change", function () {
-      op1Input.placeholder = FORMAT_PLACEHOLDER[getSelectedFormat("op1_format")];
-      op1Input.inputMode = getSelectedFormat("op1_format") === "hex" ? "text" : "decimal";
+    form.querySelectorAll('input[name="format_a"]').forEach(function (radio) {
+      radio.addEventListener("change", function () {
+        valueAInput.placeholder = PLACEHOLDERS[getSelectedValue(form, "format_a")];
+      });
     });
-  });
-  form.querySelectorAll('input[name="op2_format"]').forEach(function (radio) {
-    radio.addEventListener("change", function () {
-      op2Input.placeholder = FORMAT_PLACEHOLDER[getSelectedFormat("op2_format")];
-      op2Input.inputMode = getSelectedFormat("op2_format") === "hex" ? "text" : "decimal";
+    form.querySelectorAll('input[name="format_b"]').forEach(function (radio) {
+      radio.addEventListener("change", function () {
+        valueBInput.placeholder = PLACEHOLDERS[getSelectedValue(form, "format_b")];
+      });
     });
-  });
 
-  function getSelectedFormat(name) {
-    const checked = form.querySelector(`input[name="${name}"]:checked`);
-    return checked ? checked.value : "decimal";
-  }
-
-  function getSelectedOperation() {
-    const checked = form.querySelector('input[name="operation"]:checked');
-    return checked ? checked.value : "add";
-  }
-
-  form.addEventListener("submit", async function (event) {
-    event.preventDefault();
-    hideError();
-
-    const operation = getSelectedOperation();
-    const op1Value = op1Input.value.trim();
-    const op2Value = op2Input.value.trim();
-
-    if (!op1Value || !op2Value) {
-      showError("Enter both operands first.");
-      return;
+    function getSelectedValue(scope, name) {
+      const checked = scope.querySelector(`input[name="${name}"]:checked`);
+      return checked ? checked.value : "";
     }
 
-    setLoading(true);
+    form.addEventListener("submit", async function (event) {
+      event.preventDefault();
+      hideError();
 
-    try {
-      const response = await fetch("/api/arithmetic", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          operation,
-          op1_value: op1Value,
-          op1_format: getSelectedFormat("op1_format"),
-          op2_value: op2Value,
-          op2_format: getSelectedFormat("op2_format"),
-        }),
-      });
+      const value_a = valueAInput.value.trim();
+      const value_b = valueBInput.value.trim();
+      const format_a = getSelectedValue(form, "format_a");
+      const format_b = getSelectedValue(form, "format_b");
+      const operation = getSelectedValue(form, "operation");
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        showError(data.error || "Something went wrong. Try different operands.");
-        resultPanel.hidden = true;
+      if (!value_a || !value_b) {
+        showError("Enter both operands first.");
         return;
       }
 
-      renderResult(data);
-    } catch (err) {
-      showError("Could not reach the server. Check your connection and try again.");
-      resultPanel.hidden = true;
-    } finally {
-      setLoading(false);
+      setLoading(true);
+
+      try {
+        const response = await fetch("/api/arithmetic", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ value_a, format_a, value_b, format_b, operation }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          showError(data.error || "Something went wrong. Try different operands.");
+          resultPanel.hidden = true;
+          return;
+        }
+
+        renderResult(data);
+      } catch (err) {
+        showError("Could not reach the server. Check your connection and try again.");
+        resultPanel.hidden = true;
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    function renderResult(data) {
+      const symbol = data.operation === "addition" ? "+" : "\u00d7";
+      outEcho.textContent = `${data.operand_a.decimal} ${symbol} ${data.operand_b.decimal} = ${data.result.decimal}`;
+
+      outSign.textContent = data.result.sign;
+      outExponent.textContent = data.result.exponent_bits;
+      outMantissa.textContent = data.result.mantissa_bits;
+      outBinary.textContent = data.result.binary;
+      outHex.textContent = data.result.hex;
+      outDecimal.textContent = data.result.decimal;
+
+      stepsList.innerHTML = "";
+      data.steps.forEach(function (step) {
+        const li = document.createElement("li");
+        li.className = "step-item";
+
+        const body = document.createElement("div");
+
+        const title = document.createElement("p");
+        title.className = "step-title";
+        title.textContent = step.title;
+
+        const detail = document.createElement("p");
+        detail.className = "step-detail";
+        detail.textContent = step.detail;
+
+        body.appendChild(title);
+        body.appendChild(detail);
+        li.appendChild(body);
+        stepsList.appendChild(li);
+      });
+
+      resultPanel.hidden = false;
     }
-  });
 
-  function renderResult(data) {
-    const symbol = data.operation === "multiply" ? "\u00d7" : "+";
-    outEcho.textContent = `${data.operand_a.input} ${symbol} ${data.operand_b.input} = ${data.result.decimal}`;
-    outSign.textContent = data.result.sign;
-    outExponent.textContent = data.result.exponent;
-    outMantissa.textContent = data.result.mantissa;
-    outBinary.textContent = data.result.binary;
-    outHex.textContent = data.result.hex;
-    outDecimal.textContent = data.result.decimal;
-    outStepA.textContent = `${data.operand_a.input} \u2192 ${data.operand_a.binary} (${data.operand_a.hex})`;
-    outStepB.textContent = `${data.operand_b.input} \u2192 ${data.operand_b.binary} (${data.operand_b.hex})`;
-    outStepResult.textContent = `${data.result.binary} (${data.result.hex})`;
-    resultPanel.hidden = false;
+    function showError(message) {
+      errorBox.textContent = message;
+      errorBox.hidden = false;
+    }
+
+    function hideError() {
+      errorBox.hidden = true;
+      errorBox.textContent = "";
+    }
+
+    function setLoading(isLoading) {
+      const button = form.querySelector('button[type="submit"]');
+      if (!button) return;
+      button.disabled = isLoading;
+      button.textContent = isLoading ? "Computing…" : "Compute";
+    }
   }
-
-  function showError(message) {
-    errorBox.textContent = message;
-    errorBox.hidden = false;
-  }
-
-  function hideError() {
-    errorBox.hidden = true;
-    errorBox.textContent = "";
-  }
-
-  function setLoading(isLoading) {
-    const button = form.querySelector('button[type="submit"]');
-    if (!button) return;
-    button.disabled = isLoading;
-    button.textContent = isLoading ? "Computing\u2026" : "Compute";
-  }
-}
-
 })();

@@ -15,7 +15,7 @@
     <div class="wrap header-row">
       <a href="{{ url_for('index') }}" class="brand">
         <span class="brand">
-        <span class="brand-mark"></span>IEEE&nbsp;754&nbsp;COMPUTING&nbsp;MACHINE
+        IEEE&nbsp;754&nbsp;COMPUTING&nbsp;MACHINE
       </span>
       </a>
       <a href="{{ url_for('index') }}" class="back-link">&larr; Menu</a>
@@ -27,7 +27,7 @@
     <section class="intro">
       <span class="module-address module-address--page">0x01</span>
       <h1>Rounding</h1>
-      <p>One value, four ways to cut it off.</p>
+      <p>Input a decimal or binary value to demonstrate four ways of rounding-off.</p>
     </section>
 
     <form id="rounding-form" class="panel form-panel" autocomplete="off">
@@ -64,11 +64,12 @@
           type="number"
           id="round-target-input"
           name="target"
-          min="0"
+          min="1"
           step="1"
           value="2"
           required
         >
+        <p id="target-hint" class="field-hint"></p>
       </div>
 
       <button type="submit" class="btn-primary">Round</button>

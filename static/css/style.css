@@ -1,9 +1,3 @@
-/* =========================================================================
-   IEEE 754 Machine — design tokens
-   Pure black-on-white, grid-based, monospace accents for anything that is
-   literally bits (binary/hex output). The signature interaction is a
-   bit-flip: black <-> white inversion on hover, echoing 0/1.
-   ========================================================================= */
 
 :root {
   --color-bg: #ffffff;
@@ -77,11 +71,6 @@ a {
   letter-spacing: 0.02em;
   text-decoration: none;
   color: var(--color-text);
-}
-
-.brand-mark {
-  color: var(--color-muted);
-  margin-right: 2px;
 }
 
 .brand-sub {
@@ -201,15 +190,6 @@ a {
   font-family: var(--font-mono);
   font-size: 0.85rem;
   font-weight: 500;
-}
-
-.module-status {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  letter-spacing: 0.08em;
-  border: 1px solid currentColor;
-  padding: 2px 6px;
-  border-radius: var(--radius);
 }
 
 .module-title {
@@ -520,6 +500,96 @@ a {
 }
 
 /* -------------------------------------------------------------------------
+   Arithmetic page — operand grid and step-by-step trace list
+   ------------------------------------------------------------------------- */
+
+.operand-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap);
+  margin-bottom: 22px;
+}
+
+.operand-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.operand-fieldset input[type="text"] {
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-text);
+  margin-top: 10px;
+}
+
+.operand-fieldset input[type="text"]:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+.radio-row--compact .radio-option {
+  padding: 8px 14px;
+  font-size: 0.85rem;
+}
+
+.steps-heading {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 28px 0 12px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.steps-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: step-counter;
+}
+
+.step-item {
+  counter-increment: step-counter;
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.step-item:first-child {
+  border-top: none;
+}
+
+.step-item::before {
+  content: counter(step-counter, decimal-leading-zero);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--color-muted);
+  padding-top: 2px;
+}
+
+.step-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin: 0 0 4px;
+}
+
+.step-detail {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  margin: 0;
+  word-break: break-word;
+  line-height: 1.6;
+}
+
+/* -------------------------------------------------------------------------
    Responsive
    ------------------------------------------------------------------------- */
 
@@ -534,6 +604,14 @@ a {
 
   .rounding-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .operand-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .step-item {
+    grid-template-columns: 24px 1fr;
   }
 
   .radio-row {

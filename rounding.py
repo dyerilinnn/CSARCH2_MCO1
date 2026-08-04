@@ -1,7 +1,8 @@
 from decimal import Decimal, InvalidOperation, ROUND_DOWN, ROUND_CEILING, ROUND_FLOOR, ROUND_HALF_EVEN
 
 # Input:  A decimal or binary number (as a string), plus a target number of
-#         digits (decimal) or bits (binary) to keep after the point.
+#         significant digits (decimal) or significant bits (binary) to keep,
+#         counted from the first nonzero digit/bit.
 # Output: The same value rounded four ways:
 #   i.)   Truncated               (round toward zero        / "chop")
 #   ii.)  Rounded-up              (round toward +infinity    / ceiling)
@@ -73,19 +74,24 @@ def round_binary(value, bits):
     """
     value: a binary number as a string, optionally signed, with an optional
            fractional part, e.g. "1010.1101", "-0.101", "11", "+1.1"
-    bits:  non-negative int, how many bits to keep after the binary point
+    bits:  number of significant bits to keep, counted from the leading 1
+           (mirrors round_decimal's "significant digits", just in base 2)
 
-    Returns a dict with the four rounded results, each as a binary string
-    with exactly `bits` bits after the binary point (no point at all if
-    bits == 0).
+    Returns four IEEE-754 rounding modes using significant bits.
     """
     bits = _validate_target(bits, unit="bits")
-    sign, integer_bits, frac_bits = _parse_binary(value)
 
-    if len(frac_bits) <= bits:
-        # Nothing gets discarded, so every rounding mode agrees.
-        padded = frac_bits.ljust(bits, "0")
-        exact = _assemble_binary(sign, integer_bits, padded)
+    if bits == 0:
+        raise ValueError("Target significant bits must be at least 1.")
+
+    sign, integer_bits, frac_bits = _parse_binary(value)
+    combined = integer_bits + frac_bits
+    intlen = len(integer_bits)
+
+    first_one = combined.find("1")
+    if first_one == -1:
+        # The value is exactly zero -- every rounding mode agrees.
+        exact = _assemble_binary("", integer_bits, frac_bits)
         return {
             "truncated": exact,
             "rounded_up": exact,
@@ -93,12 +99,35 @@ def round_binary(value, bits):
             "ties_to_even": exact,
         }
 
-    keep = frac_bits[:bits]
-    discarded = frac_bits[bits:]
+    significant_available = len(combined) - first_one
+
+    if bits >= significant_available:
+        # Fewer significant bits present than requested -- nothing to discard.
+        exact = _assemble_binary(sign, integer_bits, frac_bits)
+        return {
+            "truncated": exact,
+            "rounded_up": exact,
+            "rounded_down": exact,
+            "ties_to_even": exact,
+        }
+
+    window_end = first_one + bits
+    kept_prefix = combined[:window_end]
+    discarded = combined[window_end:]
     has_extra = "1" in discarded
 
-    truncated = _assemble_binary(sign, integer_bits, keep)
-    incremented = _assemble_binary(sign, *_increment_magnitude(integer_bits, keep))
+    if window_end <= intlen:
+        # The cut falls inside the integer part itself; the dropped low-order
+        # integer bits must be re-zeroed (not just chopped off) to keep the
+        # remaining bits at their original place value.
+        keep_integer = kept_prefix.ljust(intlen, "0")
+        keep_frac = ""
+    else:
+        keep_integer = combined[:intlen]
+        keep_frac = combined[intlen:window_end]
+
+    truncated = _assemble_binary(sign, keep_integer, keep_frac)
+    incremented = _assemble_binary(sign, *_increment_magnitude(keep_integer, keep_frac))
 
     if sign == "-":
         rounded_up = truncated                          # toward zero = toward +inf for negatives
@@ -107,9 +136,7 @@ def round_binary(value, bits):
         rounded_up = incremented if has_extra else truncated
         rounded_down = truncated                         # toward zero = toward -inf for non-negatives
 
-    ties_to_even = _round_half_even_binary(
-        sign, integer_bits, keep, discarded, truncated, incremented
-    )
+    ties_to_even = _round_half_even_binary(kept_prefix, discarded, truncated, incremented)
 
     return {
         "truncated": truncated,
@@ -119,7 +146,7 @@ def round_binary(value, bits):
     }
 
 
-def _round_half_even_binary(sign, integer_bits, keep, discarded, truncated, incremented):
+def _round_half_even_binary(kept_prefix, discarded, truncated, incremented):
     first_discarded = discarded[0]
 
     if first_discarded == "0":
@@ -128,8 +155,8 @@ def _round_half_even_binary(sign, integer_bits, keep, discarded, truncated, incr
     if "1" in discarded[1:]:
         return incremented  # more than halfway -> round away from zero
 
-    # Exactly halfway -> round to even: look at the last kept bit.
-    last_kept = keep[-1] if keep else (integer_bits[-1] if integer_bits else "0")
+    # Exactly halfway -> round to even: look at the last kept (significant) bit.
+    last_kept = kept_prefix[-1]
     return incremented if last_kept == "1" else truncated
 
 
